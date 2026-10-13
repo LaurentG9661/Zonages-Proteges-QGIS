@@ -65,6 +65,12 @@ class ZonagesProtegesAlgorithm(QgsProcessingAlgorithm):
             feedback=feedback,
         )["OUTPUT"]
 
+    def _premier_champ(self, couche, candidats):
+        for c in candidats:
+            if couche.fields().indexFromName(c) >= 0:
+                return c
+        return None
+
     def processAlgorithm(self, parameters, context, feedback):
         territoire = self.parameterAsVectorLayer(parameters, self.TERRITOIRE, context)
         zonages = self.parameterAsLayerList(parameters, self.ZONAGES, context)
@@ -78,6 +84,8 @@ class ZonagesProtegesAlgorithm(QgsProcessingAlgorithm):
 
         champs = QgsFields()
         champs.append(QgsField("couche", QVariant.String))
+        champs.append(QgsField("nom_site", QVariant.String))
+        champs.append(QgsField("id_site", QVariant.String))
         champs.append(QgsField("surface_ha", QVariant.Double))
         champs.append(QgsField("pct_territoire", QVariant.Double))
 
@@ -90,6 +98,9 @@ class ZonagesProtegesAlgorithm(QgsProcessingAlgorithm):
             if feedback.isCanceled():
                 break
             feedback.pushInfo(f"Traitement de : {zonage.name()}")
+
+            champ_nom = self._premier_champ(zonage, ["nom"])
+            champ_id = self._premier_champ(zonage, ["id_mnhn", "cd_sig"])
 
             zonage_2154 = self._reprojeter(zonage, context, feedback)
             # Si l'intersection échoue sur une géométrie invalide,
@@ -109,6 +120,8 @@ class ZonagesProtegesAlgorithm(QgsProcessingAlgorithm):
                 f.setGeometry(geom)
                 f.setAttributes([
                     zonage.name(),
+                    str(feat[champ_nom]) if champ_nom else None,
+                    str(feat[champ_id]) if champ_id else None,
                     round(surface / 10000, 2),
                     round(surface / surface_territoire * 100, 2),
                 ])
