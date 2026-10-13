@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# VS Code
+.vscode/
+
+# QGIS
+*.qgz~
+*.qgs~
+.qgis/
+
+# Données lourdes : on ne versionne que les petits échantillons
+data/raw/
+data/processed/
+*.shp
+*.dbf
+*.shx
+*.prj
+*.cpg
+*.tif
+
+# Sorties générées
+outputs/
+
+# On garde les échantillons de test légers
+!data/sample/
+!data/sample/**
+
