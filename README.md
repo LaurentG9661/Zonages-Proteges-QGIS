@@ -53,3 +53,8 @@ Données : DREAL AURA via datARA.
 7. **Contrôler le résultat** dans la table attributaire de la couche
    produite : un site = une ligne, avec un `pct_territoire` plausible
    (entre 0 et 100).
+
+## Limites connues :
+
+Pourcentage calculé par rapport à chaque commune individuellement ;
+Esquilles filtrées sous 1 m²
