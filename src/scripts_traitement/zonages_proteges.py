@@ -77,8 +77,11 @@ class ZonagesProtegesAlgorithm(QgsProcessingAlgorithm):
         )["OUTPUT"]
         # Selon le contexte, on reçoit une couche ou son identifiant (texte)
         if isinstance(resultat, str):
-            return context.getMapLayer(resultat)
-        return resultat
+            couche = context.getMapLayer(resultat)
+        else:
+            couche = resultat
+        self._memoire.append(couche)  # <-- empêche la suppression prématurée
+        return couche
 
     def _premier_champ(self, couche, candidats):
         """Renvoie le premier nom de champ qui existe dans la couche."""
@@ -94,6 +97,7 @@ class ZonagesProtegesAlgorithm(QgsProcessingAlgorithm):
     # ---------- 4) Le travail : exécuté quand on clique sur « Exécuter » ----------
 
     def processAlgorithm(self, parameters, context, feedback):
+        self._memoire = []  # garde une référence à toutes les couches temporaires
         # a) Lecture des entrées
         zonages = self.parameterAsLayerList(parameters, self.ZONAGES, context)
         if not zonages:
@@ -110,22 +114,35 @@ class ZonagesProtegesAlgorithm(QgsProcessingAlgorithm):
                 "Territoire vide : vérifie qu'une commune est bien sélectionnée."
             )
         # Fusion de toutes les communes en un seul polygone
-        territoire = self._executer(
-            "native:dissolve", {"INPUT": territoire}, context, feedback
-        )
-        surface_territoire = sum(f.geometry().area() for f in territoire.getFeatures())
-        
-        if surface_territoire == 0:
-            raise QgsProcessingException("Surface du territoire nulle.")
-        feedback.pushInfo(f"Territoire : {surface_territoire / 10000:.0f} ha")
+        # territoire = self._executer(
+        #     "native:dissolve", {"INPUT": territoire}, context, feedback
+        # )
+
+        # surface_territoire = sum(f.geometry().area() for f in territoire.getFeatures())
+        # if surface_territoire == 0:
+        #     raise QgsProcessingException("Surface du territoire nulle.")
+        champ_commune_nom = self._premier_champ(territoire, ["nom"])
+        champ_commune_code = self._premier_champ(territoire, ["code", "insee", "code_insee"])
+        if champ_commune_code is None:
+            raise QgsProcessingException(
+                "Impossible de trouver un champ d'identifiant de commune (ex: 'code')."
+            )
+
+        # Surface de chaque commune individuellement, pour le calcul du pourcentage
+        surfaces_communes = {
+            f[champ_commune_code]: f.geometry().area() for f in territoire.getFeatures()
+        }
+        # feedback.pushInfo(f"Territoire : {surface_territoire / 10000:.0f} ha")
 
         # b) Structure (colonnes) de la couche de sortie
         champs = QgsFields()
         champs.append(QgsField("couche", QVariant.String))
         champs.append(QgsField("nom_site", QVariant.String))
         champs.append(QgsField("id_site", QVariant.String))
+        champs.append(QgsField("commune", QVariant.String))
+        champs.append(QgsField("code_insee", QVariant.String))
         champs.append(QgsField("surface_ha", QVariant.Double))
-        champs.append(QgsField("pct_territoire", QVariant.Double))
+        champs.append(QgsField("pct_commune", QVariant.Double))
 
         sink, dest_id = self.parameterAsSink(
             parameters, self.SORTIE, context, champs,
@@ -177,8 +194,15 @@ class ZonagesProtegesAlgorithm(QgsProcessingAlgorithm):
                 geom = feat.geometry()
                 if geom.isNull() or geom.isEmpty():
                     continue
+                if geom.area() < 1:  # moins d'1 m² : esquille topologique, on ignore
+                    continue
                 geom.convertToMultiType()
                 surface = geom.area()  # en m²
+
+                code_commune = feat[champ_commune_code]
+                surface_commune = surfaces_communes.get(code_commune)
+                if not surface_commune:
+                    continue  # sécurité : commune non reconnue
 
                 f = QgsFeature(champs)
                 f.setGeometry(geom)
@@ -186,8 +210,10 @@ class ZonagesProtegesAlgorithm(QgsProcessingAlgorithm):
                     zonage.name(),
                     self._texte(feat[champ_nom]) if champ_nom else None,
                     self._texte(feat[champ_id]) if champ_id else None,
-                    round(surface / 10000, 2),  # m² -> hectares
-                    round(surface / surface_territoire * 100, 2),
+                    self._texte(feat["nom_2"]) if champ_commune_nom else None,
+                    self._texte(code_commune),
+                    round(surface / 10000, 2),
+                    round(surface / surface_commune * 100, 2),
                 ])
                 sink.addFeature(f, QgsFeatureSink.FastInsert)
 
