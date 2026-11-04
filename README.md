@@ -1,6 +1,4 @@
-# Lyon Biodiversité SIG
-
-Génération automatique de fiches diagnostic pour les espaces naturels de la métropole de Lyon, avec PyQGIS.
+# Zonages Protégés - QGIS
 
 ## Objectif
 Algorithme de traitement QGIS (PyQGIS) qui, pour un territoire donné en Auvergne-Rhône-Alpes, identifie les zonages protégés qui le recoupent (ZNIEFF, Natura 2000, etc.) et calcule les surfaces concernées.
@@ -9,9 +7,6 @@ Données : DREAL AURA via datARA.
 ## Stack
 - QGIS 3.x / PyQGIS
 - Python 3
-
-## Statut
-🚧 En cours de développement
 
 ## Utilisation
 
@@ -53,3 +48,20 @@ Données : DREAL AURA via datARA.
 7. **Contrôler le résultat** dans la table attributaire de la couche
    produite : un site = une ligne, avec un `pct_territoire` plausible
    (entre 0 et 100).
+
+## Limites connues :
+
+Pourcentage calculé par rapport à chaque commune individuellement ;
+Esquilles filtrées sous 1 m²
+
+## Exemple de résultat :
+
+<img width="3507" height="2480" alt="ZNatura2000_DirectivesOiseaux" src="https://github.com/user-attachments/assets/4858018b-a0e9-4fa7-b575-9f01f3f55f4d" />
+
+<img width="3507" height="2480" alt="ZNIEFF_Type1_Maurienne" src="https://github.com/user-attachments/assets/57932be6-c9a3-4187-967f-366a3010ccf8" />
+
+<img width="3507" height="2480" alt="Zonages_recoupes_Maurienne" src="https://github.com/user-attachments/assets/171c9c44-0d90-4475-a311-4512740af3e5" />
+
+<img width="3507" height="2480" alt="Zonages_recoupes" src="https://github.com/user-attachments/assets/a6570a62-d878-45a0-99c0-c953aac39f6f" />
+
+<img width="3507" height="2480" alt="Attributs_Zonages_Recoupes" src="https://github.com/user-attachments/assets/b169c269-417b-4d5c-b4a9-2ae825decc1a" />
