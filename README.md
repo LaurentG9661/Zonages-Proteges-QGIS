@@ -1,4 +1,4 @@
-# Zonages Protégés - QGIS
+# Module 1 — Algorithme d’analyse de zonages protégés
 
 ## Objectif
 Algorithme de traitement QGIS (PyQGIS) qui, pour un territoire donné en Auvergne-Rhône-Alpes, identifie les zonages protégés qui le recoupent (ZNIEFF, Natura 2000, etc.) et calcule les surfaces concernées.
@@ -65,3 +65,10 @@ Esquilles filtrées sous 1 m²
 <img width="3507" height="2480" alt="Zonages_recoupes" src="https://github.com/user-attachments/assets/a6570a62-d878-45a0-99c0-c953aac39f6f" />
 
 <img width="3507" height="2480" alt="Attributs_Zonages_Recoupes" src="https://github.com/user-attachments/assets/b169c269-417b-4d5c-b4a9-2ae825decc1a" />
+
+
+
+# Module 2 — Génération automatique de fiches diagnostic départementales
+
+## Statut
+🚧 En cours de développement
