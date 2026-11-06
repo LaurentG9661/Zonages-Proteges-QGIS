@@ -54,6 +54,19 @@ Données : DREAL AURA via datARA.
 Pourcentage calculé par rapport à chaque commune individuellement ;
 Esquilles filtrées sous 1 m²
 
+## Architecture
+
+```mermaid
+flowchart LR
+    A[Territoire sélectionné] --> C[Extraction des zonages proches]
+    B[Couches de zonages] --> C
+    C --> D[Reprojection Lambert-93]
+    D --> E[Réparation des géométries]
+    E --> F[Intersection territoire x zonage]
+    F --> G[Calcul surfaces/pourcentages]
+    G --> H[Couche de résultat]
+```
+
 ## Exemple de résultat :
 
 <img width="3507" height="2480" alt="ZNatura2000_DirectivesOiseaux" src="https://github.com/user-attachments/assets/4858018b-a0e9-4fa7-b575-9f01f3f55f4d" />
