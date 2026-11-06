@@ -100,4 +100,5 @@ Algorithme qui génère automatiquement, pour chaque département d’AURA, une 
 🚧 En cours de développement
 
 # Exemple de résultat 
+<img width="1275" height="900" alt="fiche_73_Savoie" src="https://github.com/user-attachments/assets/0548eada-0bfa-42e8-8ac3-ee13affab38b" />
 [![Aperçu de la fiche PDF](images/apercu.png)](outputs/fiches/fiche_73_Savoie.pdf)
