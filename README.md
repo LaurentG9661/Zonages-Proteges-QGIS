@@ -75,8 +75,6 @@ Esquilles filtrées sous 1 m²
 
 <img width="3507" height="2480" alt="Zonages_recoupes_Maurienne" src="https://github.com/user-attachments/assets/171c9c44-0d90-4475-a311-4512740af3e5" />
 
-<img width="3507" height="2480" alt="Zonages_recoupes" src="https://github.com/user-attachments/assets/a6570a62-d878-45a0-99c0-c953aac39f6f" />
-
 <img width="3507" height="2480" alt="Attributs_Zonages_Recoupes" src="https://github.com/user-attachments/assets/b169c269-417b-4d5c-b4a9-2ae825decc1a" />
 
 
