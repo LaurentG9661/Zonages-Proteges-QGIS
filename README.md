@@ -85,3 +85,21 @@ Esquilles filtrées sous 1 m²
 
 ## Statut
 🚧 En cours de développement
+
+## Objectif
+Algorithme qui génère automatiquement, pour chaque département d’AURA, une fiche PDF avec carte et statistiques de recouvrement par les zonages protégés (mise en page cartographique automatisée).
+
+## Architecture
+🚧 En cours de développement
+
+## Stack
+🚧 En cours de développement
+
+## Utilisation
+🚧 En cours de développement
+
+## Limites connues 
+🚧 En cours de développement
+
+# Exemple de résultat 
+[![Aperçu de la fiche PDF](images/apercu.png)](outputs/fiches/fiche_73_Savoie.pdf)
