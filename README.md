@@ -4,6 +4,19 @@
 Algorithme de traitement QGIS (PyQGIS) qui, pour un territoire donné en Auvergne-Rhône-Alpes, identifie les zonages protégés qui le recoupent (ZNIEFF, Natura 2000, etc.) et calcule les surfaces concernées.
 Données : DREAL AURA via datARA.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    A[Territoire sélectionné] --> C[Extraction des zonages proches]
+    B[Couches de zonages] --> C
+    C --> D[Reprojection Lambert-93]
+    D --> E[Réparation des géométries]
+    E --> F[Intersection territoire x zonage]
+    F --> G[Calcul surfaces/pourcentages]
+    G --> H[Couche de résultat]
+```
+
 ## Stack
 - QGIS 3.x / PyQGIS
 - Python 3
@@ -53,19 +66,6 @@ Données : DREAL AURA via datARA.
 
 Pourcentage calculé par rapport à chaque commune individuellement ;
 Esquilles filtrées sous 1 m²
-
-## Architecture
-
-```mermaid
-flowchart LR
-    A[Territoire sélectionné] --> C[Extraction des zonages proches]
-    B[Couches de zonages] --> C
-    C --> D[Reprojection Lambert-93]
-    D --> E[Réparation des géométries]
-    E --> F[Intersection territoire x zonage]
-    F --> G[Calcul surfaces/pourcentages]
-    G --> H[Couche de résultat]
-```
 
 ## Exemple de résultat :
 
