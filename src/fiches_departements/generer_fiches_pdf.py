@@ -18,11 +18,8 @@ from pathlib import Path
 # RACINE_PROJET = Path(r"C:\Users\Tonton\Documents\Projets_SIG\Zonages_Proteges") # chemin personnel pour une exécution dans la console QGIS
 # DOSSIER_SORTIE = r"C:\Users\Tonton\Documents\Projets_SIG\Zonages_Proteges\outputs\fiches" # chemin personnel pour une exécution dans la console QGIS
 RACINE_PROJET = Path(__file__).resolve().parents[2]
-print('RACINE_PROJET  : ', RACINE_PROJET )
 DOSSIER_SORTIE = RACINE_PROJET / "outputs" / "fiches"
-print('DOSSIER_SORTIE : ', DOSSIER_SORTIE)
 CHEMIN_GABARIT = RACINE_PROJET / "qgis" / "gabarit_fiche.qgz"
-print('CHEMIN_GABARIT : ', CHEMIN_GABARIT)
 
 NOM_MISE_EN_PAGE = "fiche_departement"  # nom donné dans l'éditeur de mise en page
 
