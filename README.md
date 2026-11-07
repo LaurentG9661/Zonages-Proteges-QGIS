@@ -31,7 +31,7 @@ flowchart LR
 ## Architecture
 
 ```
-src/scripts_traitement/
+src/algorithme_traitement/
 └── zonages_proteges.py     # classe ZonagesProtegesAlgorithm (algorithme de traitement QGIS)
 ```
  
@@ -91,7 +91,7 @@ Toutes ces données sont sous Licence Ouverte (Etalab). La couche de territoire 
 ### Prérequis
 
 - QGIS 3.40 LTR avec PyQGIS
-- Le dossier `src/scripts_traitement` ajouté dans `Préférences > Options > Traitement > Fournisseurs > Scripts`
+- Le dossier `src/algorithme_traitement` ajouté dans `Préférences > Options > Traitement > Fournisseurs > Scripts`
 - Les données téléchargées et placées dans `data/raw/` (voir section Données)
 
 ### Étapes
