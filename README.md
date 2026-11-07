@@ -3,79 +3,141 @@
 **Statut : 🟢 version 1 fonctionnelle**
 
 ## Objectif
-Algorithme de traitement QGIS (PyQGIS) qui, pour un territoire donné en Auvergne-Rhône-Alpes, identifie les zonages protégés qui le recoupent (ZNIEFF, Natura 2000, etc.) et calcule les surfaces concernées.
-Données : DREAL AURA via datARA.
+Algorithme de traitement QGIS (PyQGIS) qui, pour un territoire donné (une ou plusieurs communes d'Auvergne-Rhône-Alpes), identifie les zonages protégés qui le recoupent (ZNIEFF, Natura 2000) et calcule, **commune par commune**, la surface concernée et la part de la commune couverte.
+ 
+L'outil s'intègre à la boîte à outils de traitements de QGIS : il s'utilise comme n'importe quel outil natif, avec sa fenêtre de paramètres, et peut être chaîné avec d'autres traitements ou lancé en lot.
 
-## Architecture
+## Fonctionnement
 
 ```mermaid
 flowchart LR
-    A[Territoire sélectionné] --> C[Extraction des zonages proches]
-    B[Couches de zonages] --> C
+    A[Communes sélectionnées] --> A2[Reprojection Lambert-93]
+    B[Couches de zonages] --> C[Extraction des sites proches]
+    A2 --> C
     C --> D[Reprojection Lambert-93]
     D --> E[Réparation des géométries]
-    E --> F[Intersection territoire x zonage]
-    F --> G[Calcul surfaces/pourcentages]
-    G --> H[Couche de résultat]
+    E --> F[Intersection avec les communes]
+    A2 --> F
+    F --> G[Filtre des esquilles < 1 m²]
+    G --> H[Calcul des surfaces et du % par commune]
+    H --> I[Couche de résultat]
 ```
 
+1. Les communes sélectionnées sont reprojetées en Lambert-93 (EPSG:2154), pour obtenir des surfaces en m².
+2. Pour **chaque couche de zonage**, l'algorithme ne garde que les sites qui touchent le territoire, les reprojette, répare leurs géométries invalides, puis les découpe selon les limites des communes.
+3. Les micro-polygones de moins de 1 m², artefacts de la superposition de deux sources dont les limites ne coïncident pas exactement, sont écartés.
+4. Pour chaque morceau restant, l'algorithme calcule la surface en hectares et le pourcentage de la commune concernée, puis écrit le tout dans la couche de résultat.
+
+## Architecture
+
+```
+src/scripts_traitement/
+└── zonages_proteges.py     # classe ZonagesProtegesAlgorithm (algorithme de traitement QGIS)
+```
+ 
+L'algorithme est une classe qui hérite de `QgsProcessingAlgorithm`. QGIS en déduit automatiquement la fenêtre de paramètres.
+ 
+| Méthode | Rôle |
+|---|---|
+| `name`, `displayName`, `group`, `groupId`, `createInstance` | Identité de l'outil dans la boîte à outils (Scripts > Biodiversité AURA) |
+| `initAlgorithm` | Déclare les paramètres d'entrée et de sortie |
+| `processAlgorithm` | Traitement principal : lecture des entrées, boucle sur les zonages, écriture du résultat |
+| `_executer` | Lance un outil natif de QGIS et renvoie toujours une couche. Conserve une référence aux couches temporaires pour éviter leur suppression prématurée en mémoire |
+| `_premier_champ` | Repère la colonne de nom ou d'identifiant selon la couche (`nom`, `id_mnhn`, `cd_sig`, `code`...) |
+| `_texte` | Convertit une valeur en texte en conservant les valeurs vides |
+ 
+**Paramètres**
+ 
+| Paramètre | Type | Description |
+|---|---|---|
+| `TERRITOIRE` | Polygones | Communes à analyser (la sélection d'entités est respectée) |
+| `ZONAGES` | Couches de polygones | Une ou plusieurs couches de zonages |
+| `SORTIE` | Couche de polygones | Couche temporaire produite |
+ 
+**Couche de sortie** (MultiPolygon, Lambert-93)
+ 
+| Colonne | Contenu |
+|---|---|
+| `couche` | Couche de zonage d'origine |
+| `nom_site` | Nom du site |
+| `id_site` | Identifiant du site (`id_mnhn` pour les ZNIEFF, `cd_sig` pour Natura 2000) |
+| `commune` | Nom de la commune |
+| `code_insee` | Code de la commune |
+| `surface_ha` | Surface du morceau de site situé dans la commune (hectares) |
+| `pct_commune` | Part de la commune couverte par ce morceau (%) |
+ 
+Outils natifs de QGIS utilisés : `native:reprojectlayer`, `native:extractbylocation`, `native:fixgeometries`, `native:intersection`.
+
 ## Stack
-- QGIS 3.x / PyQGIS
-- Python 3
+
+- QGIS 3.40 LTR, Python 3.12
+- PyQGIS : `QgsProcessingAlgorithm`, géométries, systèmes de coordonnées
+- Processing QGIS : outils natifs de traitement
+
+## Données
+ 
+Les données sont à placer dans `data/raw/` (dossier ignoré par Git).
+ 
+| Donnée | Source |
+|---|---|
+| Communes (ex : Savoie) | API Découpage administratif, `geo.api.gouv.fr` |
+| ZNIEFF de type 1 et 2 | DREAL Auvergne-Rhône-Alpes, catalogue datARA |
+| Natura 2000 (directives habitats et oiseaux) | DREAL Auvergne-Rhône-Alpes, catalogue datARA |
+ 
+Toutes ces données sont sous Licence Ouverte (Etalab). La couche de territoire doit contenir un champ `nom` et un champ de code commune (`code`, `insee` ou `code_insee`).
 
 ## Utilisation
 
 ### Prérequis
-- QGIS 3.40+ avec PyQGIS
-- Le dossier `src/scripts_traitement` ajouté dans
-  `Préférences > Options > Traitement > Fournisseurs > Scripts`
+
+- QGIS 3.40 LTR avec PyQGIS
+- Le dossier `src/scripts_traitement` ajouté dans `Préférences > Options > Traitement > Fournisseurs > Scripts`
 - Les données téléchargées et placées dans `data/raw/` (voir section Données)
 
 ### Étapes
 
-1. **Nettoyer le projet.** Avant toute exécution, vérifier qu'aucune couche
-   résultant d'un essai précédent (nommée par défaut « Zonages recoupés »)
-   n'est encore chargée dans le panneau des couches. La supprimer si besoin
-   (clic droit > Supprimer la couche).
+1. **Nettoyer le projet.** Avant toute exécution, vérifier qu'aucune couche résultant d'un essai précédent (nommée par défaut « Zonages recoupés ») n'est encore chargée dans le panneau des couches. La supprimer si besoin (clic droit > Supprimer la couche).
 
 2. **Charger les données sources.** Glisser-déposer dans QGIS :
    - la couche du territoire (ex : `communes_73.geojson`)
-   - les couches de zonages à analyser (ZNIEFF type 1, ZNIEFF type 2,
-     Natura 2000 habitats, Natura 2000 oiseaux)
+   - les couches de zonages à analyser (ZNIEFF type 1, ZNIEFF type 2, Natura 2000 habitats, Natura 2000 oiseaux)
 
-3. **Sélectionner le territoire d'étude.** Activer la couche de communes,
-   utiliser l'outil « Sélectionner une entité » et cliquer sur la ou les
-   commune(s) à analyser (surlignée(s) en jaune).
+3. **Sélectionner le territoire d'étude.** Activer la couche de communes, utiliser l'outil « Sélectionner une entité » et cliquer sur la ou les commune(s) à analyser (surlignée(s) en jaune).
 
-4. **Lancer l'outil.** Boîte à outils de traitements (`Ctrl+Alt+T`) >
-   Scripts > Biodiversité AURA > *Zonages protégés d'un territoire*.
+4. **Lancer l'outil.** Boîte à outils de traitements (`Ctrl+Alt+T`) > Scripts > Biodiversité AURA > *Zonages protégés d'un territoire*.
 
 5. **Renseigner les paramètres :**
-   - *Territoire* : la couche de communes, avec la case
-     **« Entité(s) sélectionnée(s) uniquement »** cochée
-   - *Couches de zonages* : cocher **uniquement** les couches sources
-     (ne jamais inclure une couche de résultat d'un essai précédent)
+   - *Territoire* : la couche de communes, avec la case **« Entité(s) sélectionnée(s) uniquement »** cochée
+   - *Couches de zonages* : cocher **uniquement** les couches sources (ne jamais inclure une couche de résultat d'un essai précédent)
    - *Zonages recoupés* : laisser « Créer une couche temporaire »
 
-6. **Exécuter**, puis vérifier dans l'onglet Journal que la surface du
-   territoire affichée est cohérente avec la zone sélectionnée.
+6. **Exécuter**, puis suivre l'avancement dans l'onglet Journal (une ligne « Traitement de : ... » par couche).
 
-7. **Contrôler le résultat** dans la table attributaire de la couche
-   produite : un site = une ligne, avec un `pct_territoire` plausible
-   (entre 0 et 100).
+7. **Contrôler le résultat** dans la table attributaire de la couche produite : une ligne par site et par commune, avec un `pct_commune` plausible (entre 0 et 100).
 
 ## Limites connues :
 
-Pourcentage calculé par rapport à chaque commune individuellement ;
-Esquilles filtrées sous 1 m²
+- **Pourcentage par commune** : il est calculé par rapport à chaque commune individuellement, et non sur l'ensemble du territoire. Un site qui chevauche deux communes produit deux lignes.
+- **Esquilles** : les morceaux de moins de 1 m² sont ignorés, car ils proviennent de l'écart entre les limites des différentes sources.
+- **Colonnes reconnues** : le nom et l'identifiant des sites ne sont lus que dans les colonnes `nom`, `id_mnhn` et `cd_sig`. Pour une autre couche, ces colonnes restent vides.
+- **Couche temporaire** : la sortie n'est pas enregistrée automatiquement. Il faut l'exporter (clic droit > Exporter) pour la conserver.
+- **Périmètre testé** : communes de Savoie.
 
 ## Exemple de résultat :
 
+Zonages Natura 2000 (directive oiseaux) :
+
 <img width="3507" height="2480" alt="ZNatura2000_DirectivesOiseaux" src="https://github.com/user-attachments/assets/4858018b-a0e9-4fa7-b575-9f01f3f55f4d" />
+
+ZNIEFF de type 1 sur la Maurienne :
 
 <img width="3507" height="2480" alt="ZNIEFF_Type1_Maurienne" src="https://github.com/user-attachments/assets/57932be6-c9a3-4187-967f-366a3010ccf8" />
 
+Résultat de l'algorithme (zonages recoupés) :
+
 <img width="3507" height="2480" alt="Zonages_recoupes_Maurienne" src="https://github.com/user-attachments/assets/171c9c44-0d90-4475-a311-4512740af3e5" />
+
+Table attributaire du résultat :
 
 <img width="3507" height="2480" alt="Attributs_Zonages_Recoupes" src="https://github.com/user-attachments/assets/b169c269-417b-4d5c-b4a9-2ae825decc1a" />
 
@@ -83,8 +145,7 @@ Esquilles filtrées sous 1 m²
 
 # Module 2 — Fiches diagnostic départementales
 
-<!-- **Statut : 🟢 version 1 fonctionnelle** *(à ajuster selon l'avancement)* -->
-**Statut : 🚧 En cours de développement**
+**Statut : 🟢 version 1 fonctionnelle**
 
 ## Objectif
 
@@ -98,12 +159,9 @@ Une seule commande produit les 12 fiches, sans ouvrir l'interface de QGIS.
 
 ## Exemple de résultat 
 
-<!-- <img width="1275" height="900" alt="fiche_73_Savoie" src="https://github.com/user-attachments/assets/0548eada-0bfa-42e8-8ac3-ee13affab38b" /> -->
-
-[![Fiche du département de la Savoie](docs/exemples/fiche_73_Savoie.jpg)](docs/exemples/fiche_73_Savoie.pdf)
+[![Fiche du département de la Savoie](docs/exemples/fiche_73_Savoie.png)](docs/exemples/fiche_73_Savoie.pdf)
 
 *Cliquer sur l'image pour ouvrir le PDF.*
-
 
 ## Fonctionnement
 
