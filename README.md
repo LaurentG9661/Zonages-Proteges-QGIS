@@ -115,21 +115,13 @@ Toutes ces données sont sous Licence Ouverte (Etalab). La couche de territoire 
 
 7. **Contrôler le résultat** dans la table attributaire de la couche produite : une ligne par site et par commune, avec un `pct_commune` plausible (entre 0 et 100).
 
-## Limites connues :
-
-- **Pourcentage par commune** : il est calculé par rapport à chaque commune individuellement, et non sur l'ensemble du territoire. Un site qui chevauche deux communes produit deux lignes.
-- **Esquilles** : les morceaux de moins de 1 m² sont ignorés, car ils proviennent de l'écart entre les limites des différentes sources.
-- **Colonnes reconnues** : le nom et l'identifiant des sites ne sont lus que dans les colonnes `nom`, `id_mnhn` et `cd_sig`. Pour une autre couche, ces colonnes restent vides.
-- **Couche temporaire** : la sortie n'est pas enregistrée automatiquement. Il faut l'exporter (clic droit > Exporter) pour la conserver.
-- **Périmètre testé** : communes de Savoie.
-
 ## Exemple de résultat :
 
-Zonages Natura 2000 (directive oiseaux) :
+Zones Natura 2000 (directive oiseaux) :
 
 <img width="3507" height="2480" alt="ZNatura2000_DirectivesOiseaux" src="https://github.com/user-attachments/assets/4858018b-a0e9-4fa7-b575-9f01f3f55f4d" />
 
-ZNIEFF de type 1 sur la Maurienne :
+Zones Naturelles d'Intérêt Ecologique Faunistique et Floristique de type 1 sur la Maurienne :
 
 <img width="3507" height="2480" alt="ZNIEFF_Type1_Maurienne" src="https://github.com/user-attachments/assets/57932be6-c9a3-4187-967f-366a3010ccf8" />
 
@@ -140,6 +132,14 @@ Résultat de l'algorithme (zonages recoupés) :
 Table attributaire du résultat :
 
 <img width="3507" height="2480" alt="Attributs_Zonages_Recoupes" src="https://github.com/user-attachments/assets/b169c269-417b-4d5c-b4a9-2ae825decc1a" />
+
+## Limites connues :
+
+- **Pourcentage par commune** : il est calculé par rapport à chaque commune individuellement, et non sur l'ensemble du territoire. Un site qui chevauche deux communes produit deux lignes.
+- **Esquilles** : les morceaux de moins de 1 m² sont ignorés, car ils proviennent de l'écart entre les limites des différentes sources.
+- **Colonnes reconnues** : le nom et l'identifiant des sites ne sont lus que dans les colonnes `nom`, `id_mnhn` et `cd_sig`. Pour une autre couche, ces colonnes restent vides.
+- **Couche temporaire** : la sortie n'est pas enregistrée automatiquement. Il faut l'exporter (clic droit > Exporter) pour la conserver.
+- **Périmètre testé** : communes de Savoie.
 
 
 
@@ -233,7 +233,7 @@ Toutes ces données sont sous **Licence Ouverte (Etalab)**. Les noms de couches 
 
 Les fiches sont créées dans `outputs/fiches/`, sous la forme `fiche_<code>_<département>.pdf`.
 
-> Ne pas enregistrer le projet `.qgz` après un lancement depuis la console QGIS : le script y modifie l'état de la mise en page.
+> Ne pas enregistrer le projet `.qgz` après un lancement depuis la console QGIS : le script peut y modifier l'état de la mise en page.
 
 ## Limites connues 
 
